@@ -333,8 +333,9 @@ def page2():
     return svg(1280, 720, [(BW, BH)], head_band + panel(40, 148, BW, BH, big_panel()) + msg)
 
 
-os.makedirs(OUT, exist_ok=True)
-for name, fn in (("manga-01.svg", page1), ("manga-02.svg", page2)):
-    with open(os.path.join(OUT, name), "w", encoding="utf-8") as f:
-        f.write(fn())
-print("ok")
+if __name__ == "__main__":
+    os.makedirs(OUT, exist_ok=True)
+    for name, fn in (("manga-01.svg", page1), ("manga-02.svg", page2)):
+        with open(os.path.join(OUT, name), "w", encoding="utf-8") as f:
+            f.write(fn())
+    print("ok")
