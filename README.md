@@ -30,6 +30,12 @@ Marp資料「AI稼働時間を延ばす使い方」の冒頭に差し込む導�
 
 ![zh-manga-01](zh/manga-01.png)
 
+## 中国語版（繁體中文・台湾向け）
+
+[`zh-tw/`](zh-tw/) に同じ6ページの繁体字版があります（`zh-tw/manga-01.png` 〜 `zh-tw/manga-06.png`、Marp用SVGは `zh-tw/manga/`）。
+
+![zh-tw-manga-01](zh-tw/manga-01.png)
+
 ## ファイル
 
 | ファイル | 内容 |
@@ -37,6 +43,7 @@ Marp資料「AI稼働時間を延ばす使い方」の冒頭に差し込む導�
 | `manga/manga-01.svg` 〜 `manga/manga-06.svg` | Marpに差し込む用のSVG（16:9）。01-02が導入、03-06が主旨4項目 |
 | `manga-01.png` 〜 `manga-06.png` | プレビュー・PDF書き出し用のPNG |
 | `zh/` | 中国語（簡体字）版。`python3 build_zh.py` で日本語版から再生成 |
+| `zh-tw/` | 中国語（繁体字）版。`python3 build_zh.py tw` で日本語版から再生成 |
 | `intro-snippet.md` | Marpへの差し込み例 |
 | `gen.py`, `gen_points.py` | SVGの生成スクリプト（セリフを編集して `python3 gen.py manga` / `python3 gen_points.py manga` で作り直し） |
 

@@ -1,11 +1,15 @@
-"""Build the Simplified Chinese edition: translate the generators' strings and render into zh/manga."""
+"""Build the Chinese editions: translate the generators' strings and render.
+
+python3 build_zh.py      -> Simplified Chinese into zh/manga
+python3 build_zh.py tw   -> Traditional Chinese (Taiwan) into zh-tw/manga
+"""
 import os
 import subprocess
 import sys
 import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "zh", "manga")
+VARIANT = sys.argv[1] if len(sys.argv) > 1 else "cn"
 
 ZH = {
     "キリッ": "燃！",
@@ -128,18 +132,146 @@ ZH = {
     "一言で済む": "一句话",
 }
 
+ZH_TW = {
+    "キリッ": "燃！",
+    "よし、AIに": "好，給AI",
+    "細かく指示出して": "下達詳細指令",
+    "確実に進めていくぞ！": "穩穩推進吧！",
+    "指示①": "指令①", "指示②": "指令②", "指示③": "指令③",
+    "指示④": "指令④", "指示⑤": "指令⑤", "指示⑥": "指令⑥",
+    "カタカタカタカタッ": "噠噠噠噠噠噠！",
+    "どんどん指示を": "指令一條接一條",
+    "書いて行くぞ！": "寫起來！",
+    "A案とB案、どちらにしますか？": "A方案和B方案，選哪個？",
+    "この場合の例外処理は？": "這種情況的例外處理呢？",
+    "念のため確認させてください": "保險起見，請讓我確認一下",
+    "次は何をしますか？": "下一步要做什麼？",
+    "え、えっと…": "呃、那個…",
+    "チーン…": "叮——",
+    "…今日ずっと": "…今天一整天",
+    "AIの相手しか": "都在應付AI",
+    "してない…": "其他什麼都沒做…",
+    "次のご指示を": "正在等待",
+    "お待ちしています": "您的下一個指令",
+    "次の一手": "下一步棋",
+    "新企画": "新企劃",
+    "その間、AIはバックグラウンドで稼働中": "同一時間，AI在背景持續運作",
+    "$ workflow run 一括チェック": "$ workflow run 批次檢查",
+    "  ▶ 3 agents 実行中…": "  ▶ 3 agents 執行中…",
+    "$ /loop 30m 日次巡回": "$ /loop 30m 每日巡檢",
+    "  ✓ 新着PR 2件 確認済": "  ✓ 新PR 2個 已確認",
+    "セキュリティ検査": "資安檢查",
+    "文書の抜け漏れチェック": "文件遺漏檢查",
+    "PRレビュー": "PR審查",
+    "/loop 日次巡回": "/loop 每日巡檢",
+    "お任せください。": "交給我吧。",
+    "終わったら報告します": "完成後向您回報",
+    "この企画、こう進めましょう！": "這個企劃，就這樣推進吧！",
+    "こんな風に、なっていませんか？": "你是不是也變成這樣了？",
+    "理想は、AIにかかりきりになるのではなく": "理想的狀態，不是整天圍著AI轉，",
+    "任せて、あなたが違う価値を生むこと。": "而是放手交給AI，由你去創造不同的價值。",
+    "違う価値を生む": "創造不同的價值",
+    "これまで": "以前",
+    "こうする": "這樣做",
+    "セキュリティ": "資安",
+    "仕様書": "規格書",
+    "1つずつ見てたら": "一個個看下去",
+    "日が暮れる…": "天都要黑了…",
+    "▶ 実行": "▶ 執行",
+    "抜け漏れチェック": "遺漏檢查",
+    "ポチッ": "啪！",
+    "3つのチェックを": "3項檢查",
+    "並列で一斉スタート": "平行同時啟動",
+    "検査レポート": "檢查報告",
+    "✓ セキュリティ 指摘1": "✓ 資安 發現1處",
+    "✓ 抜け漏れ 指摘2": "✓ 遺漏 發現2處",
+    "✓ PRレビュー 指摘3": "✓ PR審查 發現3處",
+    "検証済みの指摘だけ": "只列出已驗證的問題",
+    "指摘だけ": "只看問題",
+    "見ればOK！": "就OK！",
+    "結果": "結果",
+    "Workflowでチェック系をまとめて任せる": "用Workflow把檢查類工作一併交出去",
+    "セキュリティ検査・抜け漏れ・PRレビューは": "資安檢查、遺漏檢查、PR審查，",
+    "丸ごと任せる": "全部交給AI",
+    "毎朝のルーティン": "每天早上的例行公事",
+    "□ 新着PRチェック": "□ 檢查新PR",
+    "□ CIの失敗確認": "□ 確認CI失敗",
+    "□ Issue整理": "□ 整理Issue",
+    "□ 依頼メール確認": "□ 查看需求信件",
+    "毎朝これで": "每天早上",
+    "1時間…": "耗掉1小時…",
+    "  新着PRとCIを巡回して報告": "  巡檢新PR和CI並回報",
+    "30分ごとに巡回": "每30分鐘巡檢",
+    "巡回開始！": "開始巡檢！",
+    "● 巡回レポート": "● 巡檢報告",
+    "新着PR 2件：レビュー済": "新PR 2個：已審查",
+    "CI失敗 1件：原因メモ有": "CI失敗 1個：附原因",
+    "あなたの判断待ち：1件": "待你判斷：1個",
+    "気になるのだけ": "只看在意的",
+    "見ればOK": "就行",
+    "/loop で巡回させて、日課を自動化する": "用 /loop 巡檢，把日常工作自動化",
+    "毎朝のチェックはAIが巡回。あなたは": "早上的檢查交給AI巡檢，你只需",
+    "報告だけ拾う": "看報告",
+    "Q1 全体の設計方針は？": "Q1 整體設計方針？",
+    "Q2 テストも追加する？": "Q2 要加測試嗎？",
+    "Q3 この命名でOK？": "Q3 這個命名OK嗎？",
+    "AI待機中…": "AI等待中…",
+    "Q1が決まらず": "Q1定不下來",
+    "全部止まる…": "全部卡住…",
+    "Q2 実行中": "Q2 執行中",
+    "Q3 実行中": "Q3 執行中",
+    "Q2はYes、Q3はOK！": "Q2要，Q3可以！",
+    "先に進めといて": "先推進這些",
+    "即答": "秒回",
+    "バックグラウンド": "背景執行",
+    "完了": "完成",
+    "AIが止まっている時間": "AI停滯的時間",
+    "Q1はじっくり": "Q1慢慢",
+    "考えよう": "想清楚",
+    "その間に": "同一時間",
+    "すぐ答えられる問いから返して、裏で進めさせる": "先答能馬上回答的問題，讓AI在背景推進",
+    "答えやすい問いから返して、": "先回答容易的問題，",
+    "AIを止めない": "不讓AI停下來",
+    "回答（長文）": "回答（長文）",
+    "今後の方針は": "今後的方針",
+    "どうしますか？": "怎麼定？",
+    "うーん…": "嗯……",
+    "段取り表": "準備清單",
+    "ゴール": "目標",
+    "制約・前提": "限制・前提",
+    "判断の基準": "判斷標準",
+    "完了の条件": "完成條件",
+    "選択肢と推奨": "選項與推薦",
+    "先に": "提前",
+    "渡す！": "交給AI！",
+    "A案とB案どちらに？": "A方案還是B方案？",
+    "（推奨：A案）": "（推薦：A方案）",
+    "一言で": "一句話",
+    "→ AIはそのまま続行": "→ AI繼續推進",
+    "段取りを固めて、オープンクエスチョンをさせない": "先定好流程，不讓AI問開放式問題",
+    "段取りを先に渡せば、AIへの返事は": "提前給好準備清單，回覆AI只需",
+    "一言で済む": "一句話",
+}
+
 JA_FONT = "'Hiragino Maru Gothic ProN','Hiragino Sans','Noto Sans JP','Yu Gothic','Meiryo',sans-serif"
-ZH_FONT = "'PingFang SC','Hiragino Sans GB','Noto Sans SC','Microsoft YaHei',sans-serif"
+FONTS = {
+    "cn": "'PingFang SC','Hiragino Sans GB','Noto Sans SC','Microsoft YaHei',sans-serif",
+    "tw": "'PingFang TC','Hiragino Sans CNS','Noto Sans TC','Microsoft JhengHei',sans-serif",
+}
 # page2's highlight marker is hand-placed for the Japanese line; re-place it for the Chinese one.
 JA_MARK = '<rect x="596" y="664" width="298" height="20" fill="#ffe57a"/>'
 ZH_MARK = '<rect x="700" y="664" width="300" height="20" fill="#ffe57a"/>'
 
 
+TABLE = {"cn": ZH, "tw": ZH_TW}[VARIANT]
+OUT = os.path.join(HERE, {"cn": "zh", "tw": "zh-tw"}[VARIANT], "manga")
+
+
 def translate(src):
-    for ja, zh in ZH.items():
+    for ja, zh in TABLE.items():
         src = src.replace(f'"{ja}"', f'"{zh}"')
-    src = src.replace(">違う価値を生む<", f">{ZH['違う価値を生む']}<")
-    return src.replace(JA_FONT, ZH_FONT).replace(JA_MARK, ZH_MARK)
+    src = src.replace(">違う価値を生む<", f">{TABLE['違う価値を生む']}<")
+    return src.replace(JA_FONT, FONTS[VARIANT]).replace(JA_MARK, ZH_MARK)
 
 
 with tempfile.TemporaryDirectory() as tmp:
